@@ -651,8 +651,11 @@ fn get_header_string(header: &str, headers: &HeaderMap) -> Option<String> {
 
 // return on a control-c or internally requested shutdown signal
 async fn ctrl_c_or_signal(mut shutdown_signal: Receiver<()>) {
+    #[cfg(unix)]
     let mut term_signal = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
         .expect("could not define signal");
+    #[cfg(windows)]
+    let mut term_signal = tokio::signal::windows::ctrl_c().expect("could not define signal");
     loop {
         tokio::select! {
             _ = shutdown_signal.recv() => {
